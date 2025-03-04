@@ -16,5 +16,5 @@ router.post("/logout", logout);
 router.put("/teachers/:id", updateUser);
 router.get("/profile/:id",getProfile)
 //router.post("/take-attendance", takeAttendance);
-//router.post("/generateFrequencies", generateFrequencies);
+//router.post("/generatefrequency", generatefrequency);
 export default router;

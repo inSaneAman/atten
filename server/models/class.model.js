@@ -6,7 +6,7 @@ const classSchema = new Schema(
       {
         type: String,
         required: true,
-        length: [3, "# generated frequencies"],
+        length: [3, "# generated frequency"],
       },
     ],
     teacherId: [

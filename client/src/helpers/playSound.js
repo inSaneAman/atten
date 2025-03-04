@@ -1,6 +1,6 @@
-export const playSound = (frequencies) => {
-  if (!frequencies || frequencies.length === 0) {
-    console.error("❌ No frequencies provided!");
+export const playSound = (frequency) => {
+  if (!frequency || frequency.length === 0) {
+    console.error("❌ No frequency provided!");
     return;
   }
 
@@ -25,7 +25,7 @@ export const playSound = (frequencies) => {
   const numRepeats = 2; // Number of times the melody repeats
 
   for (let repeat = 0; repeat < numRepeats; repeat++) {
-    frequencies.forEach((freq, index) => {
+    frequency.forEach((freq, index) => {
       const oscillator = audioContext.createOscillator();
       oscillator.type = "sine";
       oscillator.frequency.value = freq;
@@ -51,5 +51,5 @@ export const playSound = (frequencies) => {
     });
   }
 
-  console.log("📢 Playing Attendance Signal:", frequencies.join(", "));
+  console.log("📢 Playing Attendance Signal:", frequency.join(", "));
 };

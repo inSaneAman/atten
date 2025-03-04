@@ -39,25 +39,46 @@ const registerUser = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   try {
-    const { email, password,role } = req.body;
+    const { email, password, role } = req.body;
 
-    if (!email || !password|| !role) {
+    if (!email || !password || !role) {
       return next(new AppError("All fields are required", 400));
     }
 
     const user = await User.findOne({ email }).select("+password");
 
-    if (!(user && (await user.comparePassword(password)))) {
+    if (!user) {
       return next(new AppError("Email or password does not match", 400));
     }
 
+    // Check if the role matches
+    if (user.role !== role) {
+      return next(new AppError("Invalid role for this user", 401));
+    }
+
+    // Verify password
+    if (!(await user.comparePassword(password))) {
+      return next(new AppError("Email or password does not match", 400));
+    }
+
+    const token = await user.generateJWTToken();
+
+    // Set cookie options
+    const cookieOptions = {
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    };
+
     user.password = undefined;
 
-    res.status(200).json({
-      success: true,
-      message: "User logged in successfully",
-      user,
-    });
+    res.cookie("token", token, cookieOptions)
+      .status(200)
+      .json({
+        success: true,
+        message: "User logged in successfully",
+        user
+      });
   } catch (error) {
     return next(new AppError(error.message, 500));
   }

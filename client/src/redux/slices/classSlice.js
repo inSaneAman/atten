@@ -3,12 +3,10 @@ import axios from "axios";
 
 const API_URL = "http://localhost:5014/api/v1/class";
 
-export const generateFrequencies = createAsyncThunk(
-  "class/generateFrequencies",
+export const generatefrequency = createAsyncThunk(
+  "class/generatefrequency",
   async ({ classId, teacherId }, { rejectWithValue }) => {
     try {
-      console.log("📡 Sending Request:", { classId, teacherId });
-
       const response = await axios.post(
         `${API_URL}/generate-attendance`,
         { classId, teacherId },
@@ -19,37 +17,62 @@ export const generateFrequencies = createAsyncThunk(
         }
       );
 
-      console.log("✅ API Response:", response.data);
-      return response.data.frequencies;
+      // Store frequency in localStorage with classId
+      localStorage.setItem(`frequency_${classId}`, JSON.stringify(response.data.frequency));
+      
+      return response.data.frequency;
     } catch (error) {
-      console.error("❌ API Error:", error.response?.data || error.message);
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to generate frequencies"
-      );
+      return rejectWithValue(error.response?.data?.message || "Failed to generate frequency");
     }
   }
 );
 
+export const getfrequencyByClassId = createAsyncThunk(
+  "class/getfrequency",
+  async (classId, { rejectWithValue }) => {
+    try {
+      console.log("Fetching frequency for class:", classId);
+      const response = await axios.get(`${API_URL}/frequency/${classId}`);
+      console.log("Received frequency:", response.data);
+      return response.data.frequency;
+    } catch (error) {
+      console.error("Error fetching frequency:", error);
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch frequency");
+    }
+  }
+);
 
 const classSlice = createSlice({
   name: "class",
   initialState: {
-    frequencies: [],
+    frequency: [],
     loading: false,
     error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(generateFrequencies.pending, (state) => {
+      .addCase(generatefrequency.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(generateFrequencies.fulfilled, (state, action) => {
+      .addCase(generatefrequency.fulfilled, (state, action) => {
         state.loading = false;
-        state.frequencies = action.payload;
+        state.frequency = action.payload;
       })
-      .addCase(generateFrequencies.rejected, (state, action) => {
+      .addCase(generatefrequency.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(getfrequencyByClassId.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getfrequencyByClassId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.frequency = action.payload;
+      })
+      .addCase(getfrequencyByClassId.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

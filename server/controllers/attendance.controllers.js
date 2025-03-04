@@ -4,7 +4,7 @@ import User from "../models/User.js";
 //Student Marks Attendance
 export const markAttendance = async (req, res) => {
   try {
-    const { userId, detectedFrequencies } = req.body;
+    const { userId, detectedfrequency } = req.body;
 
     // Fetch student details
     const student = await User.findById(userId);
@@ -19,23 +19,23 @@ export const markAttendance = async (req, res) => {
         .json({ message: "Student is not assigned to any class" });
     }
 
-    // Fetch stored class frequencies
+    // Fetch stored class frequency
     const classData = await Class.findById(student.classId);
     if (!classData) {
       return res.status(404).json({ message: "Class not found" });
     }
 
-    const storedFrequencies = classData.frequency; // Retrieving stored frequencies
+    const storedfrequency = classData.frequency; // Retrieving stored frequency
 
-    // ✅ Check if detected frequencies match stored ones
-    const isMatch = detectedFrequencies.every((freq) =>
-      storedFrequencies.includes(freq)
+    // ✅ Check if detected frequency match stored ones
+    const isMatch = detectedfrequency.every((freq) =>
+      storedfrequency.includes(freq)
     );
 
     if (!isMatch) {
       return res
         .status(400)
-        .json({ message: "Frequencies do not match. Attendance not marked." });
+        .json({ message: "frequency do not match. Attendance not marked." });
     }
 
     // ✅ Mark attendance for today

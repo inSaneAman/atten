@@ -1,4 +1,4 @@
-const detectSound = async (setStatus) => {
+const detectSound = async (setStatus, targetFrequencies) => {
   if (!window.isSecureContext) {
     setStatus("ERROR: App must be run over HTTPS or localhost.");
     return false;
@@ -24,11 +24,10 @@ const detectSound = async (setStatus) => {
 
     const sampleRate = audioContext.sampleRate;
     const binSize = sampleRate / analyser.fftSize;
-    const targetFrequencies = [4200, 5250, 6300]; // Frequencies from teacher
 
-    // Find closest frequency bins
-    const targetBins = targetFrequencies.map((f) => Math.round(f / binSize));
-    const detectionThreshold = 90; // Adjusted for better sensitivity
+    // Calculate target frequency bins
+    const targetBins = targetFrequencies.map(freq => Math.round(freq / binSize));
+    const detectionThreshold = 90;
 
     setStatus("Listening for signals...");
 
@@ -36,34 +35,69 @@ const detectSound = async (setStatus) => {
     const canvas = document.getElementById("frequencyData");
     const ctx = canvas.getContext("2d");
     canvas.width = bufferLength / 4;
-    canvas.height = 100;
+    canvas.height = 200;
 
     const detectTone = () => {
       analyser.getByteFrequencyData(dataArray);
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "black";
+      // Clear canvas
+      ctx.fillStyle = 'rgb(20, 20, 20)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+      // Draw frequency data
+      for (let i = 0; i < canvas.width; i++) {
+        const value = dataArray[i];
+        const percent = value / 256;
+        const height = canvas.height * percent;
+        const offset = canvas.height - height;
+
+        // Check if this frequency is a target frequency
+        const isTargetFreq = targetBins.some(bin => 
+          Math.abs(i - bin) < 3 // Wider range for visibility
+        );
+
+        // Draw frequency bars
+        if (isTargetFreq) {
+          // Target frequencies in red with higher opacity
+          ctx.fillStyle = `rgba(255, 50, 50, 0.8)`;
+        } else {
+          // Other frequencies in blue with lower opacity
+          ctx.fillStyle = `rgba(50, 50, 255, 0.3)`;
+        }
+        
+        ctx.fillRect(i, offset, 1, height);
+      }
+
+      // Draw target frequency markers
+      targetBins.forEach(bin => {
+        if (bin < canvas.width) {
+          // Draw vertical line at target frequency
+          ctx.beginPath();
+          ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+          ctx.lineWidth = 2;
+          ctx.moveTo(bin, 0);
+          ctx.lineTo(bin, canvas.height);
+          ctx.stroke();
+
+          // Draw frequency label
+          ctx.fillStyle = 'white';
+          ctx.font = '12px Arial';
+          ctx.fillText(`${Math.round(bin * binSize)}Hz`, bin + 5, 20);
+        }
+      });
+
+      // Check for detected frequencies
       let detectedCount = 0;
-      for (let i = 0; i < targetBins.length; i++) {
-        if (dataArray[targetBins[i]] > detectionThreshold) {
+      targetBins.forEach(bin => {
+        if (dataArray[bin] > detectionThreshold) {
           detectedCount++;
         }
-      }
+      });
 
       if (detectedCount === targetBins.length) {
         setStatus("✅ Attendance Marked!");
+        // Here you could make an API call to mark attendance
         setTimeout(() => setStatus("Listening for signals..."), 5000);
-      }
-
-      // Draw full-spectrum frequency graph
-      for (let i = 0; i < bufferLength / 4; i++) {
-        const barHeight = dataArray[i] / 2;
-        ctx.fillStyle = targetBins.includes(i)
-          ? "rgb(255, 50, 50)"
-          : "rgb(50, 50, 255)";
-        ctx.fillRect(i, canvas.height - barHeight, 1, barHeight);
       }
 
       requestAnimationFrame(detectTone);

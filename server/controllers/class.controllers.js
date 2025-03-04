@@ -25,7 +25,7 @@ export const registerClass = async (req, res, next) => {
       teacherId,
       className,
       studentList: [], // Students will join later
-      frequency: [], // Frequencies will be added when attendance is taken
+      frequency: [], // frequency will be added when attendance is taken
       time: time || new Date(), // Default to current time
       attendance: [], // Attendance records will be added later
     });
@@ -40,18 +40,18 @@ export const registerClass = async (req, res, next) => {
   }
 };
 
-const generateFrequencies = () => {
+const generatefrequency = () => {
   const minFreq = 1000; // 1 kHz
   const maxFreq = 8000; // 8 kHz
-  const frequencies = new Set();
+  const frequency = new Set();
 
-  while (frequencies.size < 3) {
+  while (frequency.size < 3) {
     const randomFreq =
       Math.floor(Math.random() * (maxFreq - minFreq + 1)) + minFreq;
-    frequencies.add(randomFreq);
+    frequency.add(randomFreq);
   }
 
-  return Array.from(frequencies);
+  return Array.from(frequency);
 };
 
 export const generateAttendance = async (req, res, next) => {
@@ -71,9 +71,9 @@ export const generateAttendance = async (req, res, next) => {
       return next(new AppError("Teacher ID is not valid", 400));
     }
 
-    // Generate new frequencies
-    const frequencies = generateFrequencies();
-    console.log("✅ Generated Frequencies:", frequencies);
+    // Generate new frequency
+    const frequency = generatefrequency();
+    console.log("✅ Generated frequency:", frequency);
 
     // Find class and update frequency
     const classData = await Class.findById(classId);
@@ -82,15 +82,15 @@ export const generateAttendance = async (req, res, next) => {
       return next(new AppError("Class not found", 404));
     }
 
-    // Update class with new frequencies
-    classData.frequency = frequencies;
+    // Update class with new frequency
+    classData.frequency = frequency;
     classData.teacherId = teacherId;
 
-    // Add frequencies to students' attendance data
+    // Add frequency to students' attendance data
     classData.studentList.forEach((student) => {
       classData.attendance.push({
         studentId: student,
-        detectedFrequencies: [],
+        detectedfrequency: [],
       });
     });
 
@@ -98,13 +98,13 @@ export const generateAttendance = async (req, res, next) => {
 
     setTimeout(async () => {
       await Class.findByIdAndUpdate(classId, { frequency: [] });
-      console.log(`⚠️ Frequencies removed for class ${classId}`);
+      console.log(`⚠️ frequency removed for class ${classId}`);
     }, 3 * 60 * 1000);
 
     res.status(200).json({
       success: true,
-      message: "Frequencies generated and stored successfully!",
-      frequencies,
+      message: "frequency generated and stored successfully!",
+      frequency,
     });
   } catch (error) {
     console.log("❌ Backend Error:", error);
@@ -114,3 +114,24 @@ export const generateAttendance = async (req, res, next) => {
 
 
 
+
+export const getClassfrequency = async (req, res, next) => {
+  try {
+    const { classId } = req.params;
+
+    const classDetails = await Class.findById(classId);
+    
+    if (!classDetails) {
+      return next(new AppError("Class not found", 404));
+    }
+
+    // Return the frequency stored in the class document
+    res.status(200).json({
+      success: true,
+      frequency: classDetails.frequency || []
+    });
+
+  } catch (error) {
+    return next(new AppError(error.message, 500));
+  }
+};

@@ -3,21 +3,21 @@ import axios from "axios";
 
 const API_URL = "http://localhost:5014/api/v1/"; // Change this to your backend URL
 
-// Async thunk to fetch attendance frequencies
-export const fetchAttendanceFrequencies = createAsyncThunk(
-  "attendance/fetchFrequencies",
+// Async thunk to fetch attendance frequency
+export const fetchAttendancefrequency = createAsyncThunk(
+  "attendance/fetchfrequency",
   async (classId, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `${API_URL}/get-attendance-frequencies`,
+        `${API_URL}/get-attendance-frequency`,
         {
           params: { classId },
         }
       );
-      return response.data.frequencies; // Return fetched frequencies
+      return response.data.frequency; // Return fetched frequency
     } catch (error) {
       return rejectWithValue(
-        error.response?.data || "Failed to fetch frequencies"
+        error.response?.data || "Failed to fetch frequency"
       );
     }
   }
@@ -26,21 +26,21 @@ export const fetchAttendanceFrequencies = createAsyncThunk(
 const attendanceSlice = createSlice({
   name: "attendance",
   initialState: {
-    frequencies: [],
+    frequency: [],
     status: "idle", // idle | loading | succeeded | failed
     error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchAttendanceFrequencies.pending, (state) => {
+      .addCase(fetchAttendancefrequency.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(fetchAttendanceFrequencies.fulfilled, (state, action) => {
+      .addCase(fetchAttendancefrequency.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.frequencies = action.payload;
+        state.frequency = action.payload;
       })
-      .addCase(fetchAttendanceFrequencies.rejected, (state, action) => {
+      .addCase(fetchAttendancefrequency.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload;
       });
