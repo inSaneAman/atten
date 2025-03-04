@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_URL = "http://localhost:5014/api/v1/"; // Change this to your backend URL
+const API_URL = "https://attendance-683r.onrender.com/api/v1/"; // Change this to your backend URL
 
 // Async thunk to fetch attendance frequency
 export const fetchAttendancefrequency = createAsyncThunk(

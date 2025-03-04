@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_URL = "http://localhost:5014/api/v1/class";
+const API_URL = "https://attendance-683r.onrender.com/api/v1/class";
 
 export const generatefrequency = createAsyncThunk(
   "class/generatefrequency",
